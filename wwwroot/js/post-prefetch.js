@@ -9,6 +9,16 @@ function prefetchArticle(slug, cache) {
         });
 }
 
+function showSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) spinner.style.display = 'flex';
+}
+
+function hideSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) spinner.style.display = 'none';
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const cache = {};
     const main = document.querySelector('main');
@@ -33,14 +43,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 main.innerHTML = cache[slug];
                 window.history.pushState({}, '', '/' + slug);
             } else {
+                showSpinner();
                 fetch(`/post-partial-html/${slug}`)
                     .then(res => res.ok ? res.text() : null)
                     .then(html => {
+                        hideSpinner();
                         if (html) {
                             cache[slug] = html;
                             main.innerHTML = html;
                             window.history.pushState({}, '', '/' + slug);
                         }
+                    })
+                    .catch(() => {
+                        hideSpinner();
                     });
             }
         }
@@ -52,13 +67,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (slug && cache[slug]) {
             main.innerHTML = cache[slug];
         } else if (slug) {
+            showSpinner();
             fetch(`/post-partial-html/${slug}`)
                 .then(res => res.ok ? res.text() : null)
                 .then(html => {
+                    hideSpinner();
                     if (html) {
                         cache[slug] = html;
                         main.innerHTML = html;
                     }
+                })
+                .catch(() => {
+                    hideSpinner();
                 });
         }
     });
