@@ -28,6 +28,10 @@ func main() {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		http.ServeFile(w, r, "wwwroot/favicon.ico")
 	})
+	mux.HandleFunc("/style.css", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		http.ServeFile(w, r, "wwwroot/style.css")
+	})
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -14,3 +14,27 @@ Or build and run:
 go build -o go-api-test
 ./go-api-test
 ```
+
+## Deploy Script Usage
+
+To quickly add, commit, and push your changes, use the `deploy.cmd` script:
+
+### In PowerShell (recommended on Windows 10/11):
+
+```
+.\deploy.cmd
+```
+
+### In Command Prompt (cmd.exe):
+
+```
+deploy
+```
+
+or
+
+```
+deploy.cmd
+```
+
+If you see a 'not recognized' error in PowerShell, always use the `./` or `./deploy.cmd` prefix to run scripts from the current directory.
