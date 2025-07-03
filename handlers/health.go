@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"manage-system.api/models"
+	"go-api-test/models"
 )
 
 // HealthHandler handles the /health endpoint

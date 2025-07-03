@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"manage-system.api/handlers"
-	"manage-system.api/utils"
+	"go-api-test/handlers"
+	"go-api-test/utils"
 )
 
 func main() {
