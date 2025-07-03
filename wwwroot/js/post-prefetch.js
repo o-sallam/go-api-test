@@ -19,6 +19,13 @@ function hideSpinner() {
     if (spinner) spinner.style.display = 'none';
 }
 
+function smoothScrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const cache = {};
     const main = document.querySelector('main');
@@ -42,6 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (cache[slug]) {
                 main.innerHTML = cache[slug];
                 window.history.pushState({}, '', '/' + slug);
+                smoothScrollToTop();
             } else {
                 showSpinner();
                 fetch(`/post-partial-html/${slug}`)
@@ -52,6 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             cache[slug] = html;
                             main.innerHTML = html;
                             window.history.pushState({}, '', '/' + slug);
+                            smoothScrollToTop();
                         }
                     })
                     .catch(() => {
@@ -66,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const slug = location.pathname.replace(/^\//, '');
         if (slug && cache[slug]) {
             main.innerHTML = cache[slug];
+            smoothScrollToTop();
         } else if (slug) {
             showSpinner();
             fetch(`/post-partial-html/${slug}`)
@@ -75,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (html) {
                         cache[slug] = html;
                         main.innerHTML = html;
+                        smoothScrollToTop();
                     }
                 })
                 .catch(() => {

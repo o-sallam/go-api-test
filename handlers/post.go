@@ -142,12 +142,86 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(out))
 }
 
+// getMainPageInnerHTML returns only the main content from the home page
+func getMainPageInnerHTML() (string, error) {
+	// Load the main page HTML
+	htmlBytes, err := os.ReadFile("wwwroot/index.html")
+	if err != nil {
+		return "", err
+	}
+	mainPageHTML := string(htmlBytes)
+
+	// Extract main content
+	mainStart := strings.Index(mainPageHTML, "<main>")
+	mainEnd := strings.Index(mainPageHTML, "</main>")
+	if mainStart == -1 || mainEnd == -1 {
+		return "", fmt.Errorf("main tags not found")
+	}
+
+	// Get content inside main tags
+	mainInner := mainPageHTML[mainStart+len("<main>") : mainEnd]
+
+	// Fetch articles and build cards
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cur, err := services.GetPostsCollection().Find(ctx, map[string]interface{}{})
+	if err != nil {
+		return "", err
+	}
+	var articles []models.Article
+	if err := cur.All(ctx, &articles); err != nil {
+		return "", err
+	}
+
+	// Convert to PostCardResponse for card rendering
+	var postCardResponses []models.PostCardResponse
+	for _, a := range articles {
+		shortDate := a.CreatedAt
+		if len(shortDate) >= 10 {
+			shortDate = shortDate[:10]
+		}
+		postCardResponses = append(postCardResponses, models.PostCardResponse{
+			ALT:      a.Title + " - صورة توضيحية",
+			IMG:      a.CoverImage,
+			CATEGORY: a.Category,
+			LINK:     "/" + a.Slug,
+			TITLE:    a.Title,
+			EXCERPT:  a.Excerpt,
+			VIEWS:    fmt.Sprintf("%d", a.Views),
+			AUTHOR:   a.Author.Name,
+			DATE:     shortDate,
+			Slug:     a.Slug,
+		})
+	}
+
+	cardsHTML := utils.BuildCardsHTML(postCardResponses)
+	mainInner = strings.Replace(mainInner, "{{CARDS}}", cardsHTML, 1)
+
+	return mainInner, nil
+}
+
 // PostPartialHTMLHandler returns only the <main>...</main> HTML of the post for a given slug
 func PostPartialHTMLHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract slug from URL: /post-partial-html/{slug}
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 3 || parts[2] == "" {
-		utils.Show404(w)
+		// Return main page inner content when no slug provided
+		mainInner, err := getMainPageInnerHTML()
+		if err != nil {
+			http.Error(w, "Failed to load main page", 500)
+			return
+		}
+		// Minify the HTML before sending
+		m := minify.New()
+		m.AddFunc("text/html", minhtml.Minify)
+		minified, err := m.String("text/html", mainInner)
+		if err != nil {
+			w.Write([]byte(mainInner)) // fallback to unminified
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(minified))
 		return
 	}
 	slug := parts[2]
