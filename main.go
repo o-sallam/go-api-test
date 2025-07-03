@@ -25,7 +25,10 @@ func main() {
 	mux.HandleFunc("/hello", handlers.HelloWorldHandler)
 	mux.HandleFunc("/health", handlers.HealthHandler)
 
-	port := "8080"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 	fmt.Printf("Server starting on port %s...\n", port)
 	fmt.Printf("Try: http://localhost:%s/hello\n", port)
 	fmt.Printf("Health check: http://localhost:%s/health\n", port)
