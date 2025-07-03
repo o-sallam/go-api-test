@@ -27,6 +27,10 @@ func RegisterRoutes(mux *http.ServeMux, staticRoot string, cssContent string) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		http.ServeFile(w, r, staticRoot+"/robots.txt")
 	}))
+	mux.HandleFunc("/google4fe8d22092105d8e.html", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		http.ServeFile(w, r, staticRoot+"/google4fe8d22092105d8e.html")
+	})
 
 	// --- Page endpoints ---
 	mux.HandleFunc("/hello", handlers.HelloWorldHandler)
