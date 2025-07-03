@@ -4,3 +4,15 @@ type Response struct {
 	Message string `json:"message"`
 	Status  string `json:"status"`
 }
+
+type DummyArticle struct {
+	ALT      string
+	IMG      string
+	CATEGORY string
+	LINK     string
+	TITLE    string
+	EXCERPT  string
+	VIEWS    string
+	AUTHOR   string
+	DATE     string
+}

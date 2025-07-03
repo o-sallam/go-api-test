@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"go-api-test/models"
 	"net/http"
 	"os"
 	"strings"
@@ -22,26 +23,13 @@ func SetPortfolioHTML(html string) {
 	cardTemplate = string(cardBytes)
 }
 
-// DummyArticle represents a dummy article for demonstration
-type DummyArticle struct {
-	ALT      string
-	IMG      string
-	CATEGORY string
-	LINK     string
-	TITLE    string
-	EXCERPT  string
-	VIEWS    string
-	AUTHOR   string
-	DATE     string
-}
-
 // PortfolioHandler serves the HTML with dynamic cards
 func PortfolioHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
 	// Generate dummy data
-	articles := []DummyArticle{
+	articles := []models.DummyArticle{
 		{
 			ALT:      "كل ما تريد معرفته عن القهوة - صورة توضيحية",
 			IMG:      "/img/blog.webp",
