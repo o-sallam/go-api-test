@@ -48,6 +48,7 @@ func main() {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		http.ServeFile(w, r, "wwwroot/robots.txt")
 	}))
+	mux.Handle("/fonts/", http.StripPrefix("/fonts/", http.FileServer(http.Dir("wwwroot/fonts"))))
 
 	port := os.Getenv("PORT")
 	if port == "" {
