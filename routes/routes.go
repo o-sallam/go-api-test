@@ -26,4 +26,14 @@ func RegisterRoutes(mux *http.ServeMux, staticRoot string, cssContent string) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		http.ServeFile(w, r, staticRoot+"/robots.txt")
 	}))
+	mux.HandleFunc("/header.css", utils.GzipHandler(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+		http.ServeFile(w, r, staticRoot+"/header.css")
+	}))
+	mux.HandleFunc("/footer.css", utils.GzipHandler(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+		http.ServeFile(w, r, staticRoot+"/footer.css")
+	}))
 }
