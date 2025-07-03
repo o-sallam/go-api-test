@@ -48,16 +48,30 @@ func InsertArticle(article *models.Article) (*mongo.InsertOneResult, error) {
 func EnsurePostsCollection() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	db := mongoClient.Database("Cluster0")
 	collections, err := db.ListCollectionNames(ctx, bson.M{"name": "posts"})
 	if err != nil {
 		return err
 	}
-	if len(collections) > 0 {
-		return nil // Already exists
+	if len(collections) == 0 {
+		opts := options.CreateCollection()
+		err = db.CreateCollection(ctx, "posts", opts)
+		if err != nil {
+			return err
+		}
 	}
-	opts := options.CreateCollection()
-	return db.CreateCollection(ctx, "posts", opts)
+	// تأكد من وجود فهرس فريد على slug
+	posts := db.Collection("posts")
+	indexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "slug", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}
+	_, err = posts.Indexes().CreateOne(ctx, indexModel)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func AddPost(article *models.Article) (interface{}, error) {

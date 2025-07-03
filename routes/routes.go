@@ -35,6 +35,7 @@ func RegisterRoutes(mux *http.ServeMux, staticRoot string, cssContent string) {
 	// --- Page endpoints ---
 	mux.HandleFunc("/hello", handlers.HelloWorldHandler)
 	mux.HandleFunc("/health", handlers.HealthHandler)
+	mux.HandleFunc("/post-partial-html/", handlers.PostPartialHTMLHandler)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			handlers.HomeHandler(w, r)

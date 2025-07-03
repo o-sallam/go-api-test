@@ -2,7 +2,7 @@ package models
 
 type Article struct {
 	ID         string   `bson:"_id,omitempty" json:"id"`
-	Slug       string   `bson:"slug" json:"slug"`
+	Slug       string   `bson:"slug" json:"slug"` // unique: used for search and index
 	Title      string   `bson:"title" json:"title"`
 	Excerpt    string   `bson:"excerpt" json:"excerpt"`
 	Content    string   `bson:"content" json:"content"`
