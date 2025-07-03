@@ -30,7 +30,10 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir(staticRoot+"/img"))))
-	mux.HandleFunc("/", handlers.HomeHandler)
+	mux.HandleFunc("/majallat-althaqafa.html", handlers.HomeHandler)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/majallat-althaqafa.html", http.StatusMovedPermanently)
+	})
 	mux.HandleFunc("/hello", handlers.HelloWorldHandler)
 	mux.HandleFunc("/health", handlers.HealthHandler)
 	mux.HandleFunc("/favicon.ico", utils.GzipHandler(func(w http.ResponseWriter, r *http.Request) {
