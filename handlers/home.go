@@ -63,15 +63,15 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to decode articles", 500)
 		return
 	}
-	// Convert to DummyArticle for card rendering
-	var dummyArticles []models.DummyArticle
+	// Convert to PostCardResponse for card rendering
+	var postCardResponses []models.PostCardResponse
 	for _, a := range articles {
 		// Format date as short date (YYYY-MM-DD)
 		shortDate := a.CreatedAt
 		if len(shortDate) >= 10 {
 			shortDate = shortDate[:10]
 		}
-		dummyArticles = append(dummyArticles, models.DummyArticle{
+		postCardResponses = append(postCardResponses, models.PostCardResponse{
 			ALT:      a.Title + " - صورة توضيحية",
 			IMG:      a.CoverImage,
 			CATEGORY: a.Category,
@@ -84,7 +84,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 			Slug:     a.Slug,
 		})
 	}
-	cardsHTML := utils.BuildCardsHTML(dummyArticles)
+	cardsHTML := utils.BuildCardsHTML(postCardResponses)
 	body := strings.Replace(portfolioBody, "{{CARDS}}", cardsHTML, 1)
 	out := layoutHTML
 	out = strings.Replace(out, "{{HEADER}}", headerHTML, 1)

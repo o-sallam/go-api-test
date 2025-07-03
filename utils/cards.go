@@ -17,20 +17,31 @@ func LoadCardTemplate(path string) error {
 	return nil
 }
 
-func BuildCardsHTML(articles []models.DummyArticle) string {
+// ReplacePlaceholders replaces all {{KEY}} in template with values from fields map
+func ReplacePlaceholders(template string, fields map[string]string) string {
+	for key, value := range fields {
+		template = strings.ReplaceAll(template, "{{"+key+"}}", value)
+	}
+	return template
+}
+
+func BuildCardsHTML(articles []models.PostCardResponse) string {
 	var cardsBuilder strings.Builder
 	for _, a := range articles {
-		card := cardTemplate
-		card = strings.ReplaceAll(card, "{{ALT}}", a.ALT)
-		card = strings.ReplaceAll(card, "{{IMG}}", a.IMG)
-		card = strings.ReplaceAll(card, "{{CATEGORY}}", a.CATEGORY)
-		card = strings.ReplaceAll(card, "{{LINK}}", a.LINK)
-		card = strings.ReplaceAll(card, "{{TITLE}}", a.TITLE)
-		card = strings.ReplaceAll(card, "{{EXCERPT}}", a.EXCERPT)
-		card = strings.ReplaceAll(card, "{{VIEWS}}", a.VIEWS)
-		card = strings.ReplaceAll(card, "{{AUTHOR}}", a.AUTHOR)
-		card = strings.ReplaceAll(card, "{{DATE}}", a.DATE)
-		card = strings.ReplaceAll(card, "{{SLUG}}", a.Slug)
+		fields := map[string]string{
+			"ALT":      a.ALT,
+			"IMG":      a.IMG,
+			"CATEGORY": a.CATEGORY,
+			"LINK":     a.LINK,
+			"TITLE":    a.TITLE,
+			"EXCERPT":  a.EXCERPT,
+			"VIEWS":    a.VIEWS,
+			"AUTHOR":   a.AUTHOR,
+			"DATE":     a.DATE,
+			"SLUG":     a.Slug,
+			// يمكنك إضافة أي حقول ديناميكية أخرى هنا
+		}
+		card := ReplacePlaceholders(cardTemplate, fields)
 		cardsBuilder.WriteString(card)
 	}
 	return cardsBuilder.String()

@@ -5,7 +5,7 @@ type Response struct {
 	Status  string `json:"status"`
 }
 
-type DummyArticle struct {
+type PostCardResponse struct {
 	ALT      string
 	IMG      string
 	CATEGORY string

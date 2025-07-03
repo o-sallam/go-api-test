@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go-api-test/models"
 	"go-api-test/services"
+	"go-api-test/utils"
 	"net/http"
 	"os"
 	"strings"
@@ -63,26 +64,32 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	mainContent := postHTML[mainStart : mainEnd+len("</main>")]
-	// Fill mainContent with article data (simple replace)
-	mainContent = strings.ReplaceAll(mainContent, "{{title}}", article.Title)
-	mainContent = strings.ReplaceAll(mainContent, "{{excerpt}}", article.Excerpt)
-	mainContent = strings.ReplaceAll(mainContent, "{{content}}", article.Content)
-	mainContent = strings.ReplaceAll(mainContent, "{{category}}", article.Category)
-	mainContent = strings.ReplaceAll(mainContent, "{{coverImage}}", article.CoverImage)
-	mainContent = strings.ReplaceAll(mainContent, "{{views}}", fmt.Sprintf("%d", article.Views))
-	mainContent = strings.ReplaceAll(mainContent, "{{authorName}}", article.Author.Name)
-	mainContent = strings.ReplaceAll(mainContent, "{{createdAt}}", article.CreatedAt)
-	// Fill author aside
+	// Fill mainContent with article data (dynamic replace)
+	mainFields := map[string]string{
+		"title":      article.Title,
+		"excerpt":    article.Excerpt,
+		"content":    article.Content,
+		"category":   article.Category,
+		"coverImage": article.CoverImage,
+		"views":      fmt.Sprintf("%d", article.Views),
+		"authorName": article.Author.Name,
+		"createdAt":  article.CreatedAt,
+	}
+	mainContent = utils.ReplacePlaceholders(mainContent, mainFields)
+	// Fill author aside (dynamic replace)
 	authorAside := authorAsideTmpl
-	authorAside = strings.ReplaceAll(authorAside, "{{authorImage}}", "/img/auth.webp")
-	authorAside = strings.ReplaceAll(authorAside, "{{authorName}}", article.Author.Name)
-	authorAside = strings.ReplaceAll(authorAside, "{{authorBio}}", "كاتب متخصص في عالم الطعام والمشروبات. يحب استكشاف الثقافات المختلفة من خلال مذاقاتها الفريدة.")
-	authorAside = strings.ReplaceAll(authorAside, "{{authorJoin}}", "يناير 2020")
-	authorAside = strings.ReplaceAll(authorAside, "{{authorArticles}}", "45")
-	authorAside = strings.ReplaceAll(authorAside, "{{authorFollowers}}", "2.3k")
-	authorAside = strings.ReplaceAll(authorAside, "{{articleStatsViews}}", fmt.Sprintf("%d", article.Views))
-	authorAside = strings.ReplaceAll(authorAside, "{{articleComments}}", "23")
-	authorAside = strings.ReplaceAll(authorAside, "{{articleStatsDate}}", article.CreatedAt)
+	authorFields := map[string]string{
+		"authorImage":       "/img/auth.webp",
+		"authorName":        article.Author.Name,
+		"authorBio":         "كاتب متخصص في عالم الطعام والمشروبات. يحب استكشاف الثقافات المختلفة من خلال مذاقاتها الفريدة.",
+		"authorJoin":        "يناير 2020",
+		"authorArticles":    "45",
+		"authorFollowers":   "2.3k",
+		"articleStatsViews": fmt.Sprintf("%d", article.Views),
+		"articleComments":   "23",
+		"articleStatsDate":  article.CreatedAt,
+	}
+	authorAside = utils.ReplacePlaceholders(authorAside, authorFields)
 	// Insert authorAside into mainContent at the placeholder
 	mainContent = strings.Replace(mainContent, "{{AUTHOR_ASIDE}}", authorAside, 1)
 	// Compose final HTML using layout
