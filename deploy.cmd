@@ -5,5 +5,4 @@ git add .
 git commit -m "deploy"
 git push
 
-echo Deployment commands executed.
-pause 
+echo Deployment commands executed. 
