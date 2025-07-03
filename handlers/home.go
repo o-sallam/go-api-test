@@ -1,11 +1,15 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
 	"go-api-test/models"
+	"go-api-test/services"
 	"go-api-test/utils"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/html"
@@ -46,33 +50,41 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
-	// Generate dummy data
-	articles := []models.DummyArticle{
-		{
-			ALT:      "كل ما تريد معرفته عن القهوة - صورة توضيحية",
-			IMG:      "/img/blog.webp",
-			CATEGORY: "تقنية",
-			LINK:     "posts/first-blog-post/",
-			TITLE:    "كل ما تريد معرفته عن القهوة",
-			EXCERPT:  "تعرّف على أحدث تطبيقات الهواتف الذكية وكيفية استخدامها لتحسين الإنتاجية والترفيه.",
-			VIEWS:    "1.5k",
-			AUTHOR:   "محمد علي",
-			DATE:     "منذ 4 أيام",
-		},
-		{
-			ALT:      "Second Blog Post - صورة توضيحية",
-			IMG:      "/img/blog.webp",
-			CATEGORY: "صحة",
-			LINK:     "posts/second-blog-post/",
-			TITLE:    "Second Blog Post",
-			EXCERPT:  "اكتشف أهمية النوم الصحي وكيف يؤثر على صحتك العامة ونشاطك اليومي.",
-			VIEWS:    "1.2k",
-			AUTHOR:   "محمد علي",
-			DATE:     "منذ 3 أيام",
-		},
+	// Fetch articles from the database
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cur, err := services.GetPostsCollection().Find(ctx, map[string]interface{}{})
+	if err != nil {
+		http.Error(w, "Failed to fetch articles", 500)
+		return
 	}
-
-	cardsHTML := utils.BuildCardsHTML(articles)
+	var articles []models.Article
+	if err := cur.All(ctx, &articles); err != nil {
+		http.Error(w, "Failed to decode articles", 500)
+		return
+	}
+	// Convert to DummyArticle for card rendering
+	var dummyArticles []models.DummyArticle
+	for _, a := range articles {
+		// Format date as short date (YYYY-MM-DD)
+		shortDate := a.CreatedAt
+		if len(shortDate) >= 10 {
+			shortDate = shortDate[:10]
+		}
+		dummyArticles = append(dummyArticles, models.DummyArticle{
+			ALT:      a.Title + " - صورة توضيحية",
+			IMG:      a.CoverImage,
+			CATEGORY: a.Category,
+			LINK:     "/" + a.Slug,
+			TITLE:    a.Title,
+			EXCERPT:  a.Excerpt,
+			VIEWS:    fmt.Sprintf("%d", a.Views),
+			AUTHOR:   a.Author.Name,
+			DATE:     shortDate,
+			Slug:     a.Slug,
+		})
+	}
+	cardsHTML := utils.BuildCardsHTML(dummyArticles)
 	body := strings.Replace(portfolioBody, "{{CARDS}}", cardsHTML, 1)
 	out := layoutHTML
 	out = strings.Replace(out, "{{HEADER}}", headerHTML, 1)

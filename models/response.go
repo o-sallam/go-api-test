@@ -15,4 +15,5 @@ type DummyArticle struct {
 	VIEWS    string
 	AUTHOR   string
 	DATE     string
+	Slug     string
 }

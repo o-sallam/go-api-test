@@ -30,6 +30,7 @@ func BuildCardsHTML(articles []models.DummyArticle) string {
 		card = strings.ReplaceAll(card, "{{VIEWS}}", a.VIEWS)
 		card = strings.ReplaceAll(card, "{{AUTHOR}}", a.AUTHOR)
 		card = strings.ReplaceAll(card, "{{DATE}}", a.DATE)
+		card = strings.ReplaceAll(card, "{{SLUG}}", a.Slug)
 		cardsBuilder.WriteString(card)
 	}
 	return cardsBuilder.String()

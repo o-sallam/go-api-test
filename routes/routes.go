@@ -4,6 +4,7 @@ import (
 	"go-api-test/handlers"
 	"go-api-test/utils"
 	"net/http"
+	"strings"
 )
 
 func RegisterRoutes(mux *http.ServeMux, staticRoot string, cssContent string) {
@@ -14,21 +15,7 @@ func RegisterRoutes(mux *http.ServeMux, staticRoot string, cssContent string) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		http.ServeFile(w, r, staticRoot+"/favicon.ico")
 	}))
-	mux.HandleFunc("/style.css", utils.GzipHandler(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		w.Write([]byte(cssContent))
-	}))
-	mux.HandleFunc("/header.css", utils.GzipHandler(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		http.ServeFile(w, r, staticRoot+"/header.css")
-	}))
-	mux.HandleFunc("/footer.css", utils.GzipHandler(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		http.ServeFile(w, r, staticRoot+"/footer.css")
-	}))
+	mux.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir(staticRoot+"/css"))))
 	mux.HandleFunc("/robots.txt", utils.GzipHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -36,7 +23,19 @@ func RegisterRoutes(mux *http.ServeMux, staticRoot string, cssContent string) {
 	}))
 
 	// --- Page endpoints ---
-	mux.HandleFunc("/", handlers.HomeHandler)
 	mux.HandleFunc("/hello", handlers.HelloWorldHandler)
 	mux.HandleFunc("/health", handlers.HealthHandler)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			handlers.HomeHandler(w, r)
+			return
+		}
+		// Redirect /slug/ to /slug (remove trailing slash)
+		if strings.HasSuffix(r.URL.Path, "/") {
+			clean := strings.TrimSuffix(r.URL.Path, "/")
+			http.Redirect(w, r, clean, http.StatusMovedPermanently)
+			return
+		}
+		handlers.PostHandler(w, r)
+	})
 }
