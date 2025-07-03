@@ -97,16 +97,20 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		"createdAt":  article.CreatedAt,
 		"prevLink":   "#",
 		"prevTitle":  "لا يوجد مقال سابق",
+		"prevImage":  "/img/last-post.webp",
 		"nextLink":   "#",
 		"nextTitle":  "لا يوجد مقال لاحق",
+		"nextImage":  "/img/blog.webp",
 	}
 	if prev != nil {
 		mainFields["prevLink"] = "/" + prev.Slug
 		mainFields["prevTitle"] = prev.Title
+		mainFields["prevImage"] = prev.CoverImage
 	}
 	if next != nil {
 		mainFields["nextLink"] = "/" + next.Slug
 		mainFields["nextTitle"] = next.Title
+		mainFields["nextImage"] = next.CoverImage
 	}
 	mainContent = utils.ReplacePlaceholders(mainContent, mainFields)
 	// Fill author aside (dynamic replace)
@@ -178,16 +182,20 @@ func PostPartialHTMLHandler(w http.ResponseWriter, r *http.Request) {
 		"createdAt":  article.CreatedAt,
 		"prevLink":   "#",
 		"prevTitle":  "لا يوجد مقال سابق",
+		"prevImage":  "/img/last-post.webp",
 		"nextLink":   "#",
 		"nextTitle":  "لا يوجد مقال لاحق",
+		"nextImage":  "/img/blog.webp",
 	}
 	if prev != nil {
 		mainFields["prevLink"] = "/" + prev.Slug
 		mainFields["prevTitle"] = prev.Title
+		mainFields["prevImage"] = prev.CoverImage
 	}
 	if next != nil {
 		mainFields["nextLink"] = "/" + next.Slug
 		mainFields["nextTitle"] = next.Title
+		mainFields["nextImage"] = next.CoverImage
 	}
 	mainContent = utils.ReplacePlaceholders(mainContent, mainFields)
 	authorAside := authorAsideTmpl
