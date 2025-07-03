@@ -24,6 +24,10 @@ func main() {
 	mux.HandleFunc("/", handlers.PortfolioHandler)
 	mux.HandleFunc("/hello", handlers.HelloWorldHandler)
 	mux.HandleFunc("/health", handlers.HealthHandler)
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		http.ServeFile(w, r, "wwwroot/favicon.ico")
+	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
