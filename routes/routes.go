@@ -10,7 +10,10 @@ import (
 func RegisterRoutes(mux *http.ServeMux, staticRoot string, cssContent string) {
 	// --- Static file endpoints ---
 	mux.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir(staticRoot+"/img"))))
-	mux.Handle("/fonts/", http.StripPrefix("/fonts/", http.FileServer(http.Dir(staticRoot+"/fonts"))))
+	mux.Handle("/fonts/", http.StripPrefix("/fonts/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		http.FileServer(http.Dir(staticRoot+"/fonts")).ServeHTTP(w, r)
+	})))
 	mux.HandleFunc("/favicon.ico", utils.GzipHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		http.ServeFile(w, r, staticRoot+"/favicon.ico")
