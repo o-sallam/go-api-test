@@ -11,6 +11,6 @@ go run main.go
 Or build and run:
 
 ```
-go build -o manage-system.api
-./manage-system.api
+go build -o manage-system-api
+./manage-system-api
 ```
