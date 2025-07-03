@@ -1,1 +1,1 @@
-web: ./manage-system-api 
+web: ./go-api-test 
