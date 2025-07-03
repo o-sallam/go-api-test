@@ -13,14 +13,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const cache = {};
     const main = document.querySelector('main');
     if (!main) return;
-    // Delegate for prev/next buttons
-    document.body.addEventListener('mousemove', function (e) {
+    // Prefetch only once per link on mouseenter
+    document.body.addEventListener('mouseenter', function (e) {
         const link = e.target.closest('.article-nav-card a');
         if (link && link.getAttribute('href') && link.getAttribute('href') !== '#') {
             const slug = link.getAttribute('href').replace(/^\//, '');
             prefetchArticle(slug, cache);
         }
-    });
+    }, true); // useCapture=true to catch events on bubbling
     document.body.addEventListener('click', function (e) {
         const link = e.target.closest('.article-nav-card a');
         if (link && link.getAttribute('href') && link.getAttribute('href') !== '#') {
