@@ -19,6 +19,13 @@ func main() {
 	minified := utils.MinifyHTML(string(htmlBytes))
 	handlers.SetPortfolioHTML(minified)
 
+	// Load and minify CSS at startup
+	cssBytes, err := os.ReadFile("wwwroot/style.css")
+	if err != nil {
+		log.Fatalf("Failed to load style.css: %v", err)
+	}
+	minifiedCSS := utils.MinifyCSS(string(cssBytes))
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", handlers.PortfolioHandler)
@@ -30,7 +37,8 @@ func main() {
 	})
 	mux.HandleFunc("/style.css", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		http.ServeFile(w, r, "wwwroot/style.css")
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+		w.Write([]byte(minifiedCSS))
 	})
 	mux.HandleFunc("/img/blog.webp", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
