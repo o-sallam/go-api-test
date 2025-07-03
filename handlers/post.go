@@ -36,7 +36,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract slug from URL: /{slug}
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 2 || parts[1] == "" {
-		http.NotFound(w, r)
+		utils.Show404(w)
 		return
 	}
 	slug := parts[1]
@@ -46,7 +46,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	var article models.Article
 	err := services.GetPostsCollection().FindOne(ctx, map[string]interface{}{"slug": slug}).Decode(&article)
 	if err != nil {
-		http.NotFound(w, r)
+		utils.Show404(w)
 		return
 	}
 	// Load post.html (main content template)

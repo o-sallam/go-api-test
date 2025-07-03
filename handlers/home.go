@@ -100,15 +100,3 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write([]byte(minified))
 }
-
-func Show404(w http.ResponseWriter) {
-	w.WriteHeader(404)
-	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	page, err := os.ReadFile("views/404.html")
-	if err != nil {
-		w.Write([]byte("404 - Not Found"))
-		return
-	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write(page)
-}
