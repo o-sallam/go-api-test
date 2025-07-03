@@ -5,4 +5,4 @@ Allow: /
 # Disallow: /admin
 # Disallow: /private
 
-Sitemap: /sitemap.xml 
+Sitemap: https://web-production-3786c.up.railway.app/sitemap.xml 
