@@ -4,17 +4,41 @@ import (
 	"go-api-test/models"
 	"go-api-test/utils"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/tdewolff/minify/v2"
+	"github.com/tdewolff/minify/v2/html"
 )
 
-var portfolioHTML string
+var (
+	portfolioBody string
+	headerHTML    string
+	footerHTML    string
+	layoutHTML    string
+)
 
 // SetPortfolioHTML sets the HTML template in memory and loads the card template via the utils
-func SetPortfolioHTML(html string) {
-	portfolioHTML = html
+func SetPortfolioHTML(body string) {
+	portfolioBody = body
 	if err := utils.LoadCardTemplate("components/card.html"); err != nil {
 		panic("Failed to load card template: " + err.Error())
 	}
+	h, err := os.ReadFile("components/header.html")
+	if err != nil {
+		panic("Failed to load header.html: " + err.Error())
+	}
+	headerHTML = string(h)
+	f, err := os.ReadFile("components/footer.html")
+	if err != nil {
+		panic("Failed to load footer.html: " + err.Error())
+	}
+	footerHTML = string(f)
+	l, err := os.ReadFile("components/layout.html")
+	if err != nil {
+		panic("Failed to load layout.html: " + err.Error())
+	}
+	layoutHTML = string(l)
 }
 
 // HomeHandler serves the HTML with dynamic cards
@@ -49,6 +73,18 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cardsHTML := utils.BuildCardsHTML(articles)
-	out := strings.Replace(portfolioHTML, "{{CARDS}}", cardsHTML, 1)
-	w.Write([]byte(out))
+	body := strings.Replace(portfolioBody, "{{CARDS}}", cardsHTML, 1)
+	out := layoutHTML
+	out = strings.Replace(out, "{{HEADER}}", headerHTML, 1)
+	out = strings.Replace(out, "{{BODY}}", body, 1)
+	out = strings.Replace(out, "{{FOOTER}}", footerHTML, 1)
+
+	m := minify.New()
+	m.AddFunc("text/html", html.Minify)
+	minified, err := m.String("text/html", out)
+	if err != nil {
+		w.Write([]byte(out)) // fallback to unminified
+		return
+	}
+	w.Write([]byte(minified))
 }
