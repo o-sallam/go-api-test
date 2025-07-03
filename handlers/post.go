@@ -181,10 +181,10 @@ func PostPartialHTMLHandler(w http.ResponseWriter, r *http.Request) {
 		"createdAt":  article.CreatedAt,
 		"prevLink":   "#",
 		"prevTitle":  "لا يوجد مقال سابق",
-		"prevImage":  "/img/blog",
+		"prevImage":  "/img/last-post",
 		"nextLink":   "#",
 		"nextTitle":  "لا يوجد مقال لاحق",
-		"nextImage":  "/img/blog",
+		"nextImage":  "/img/last-post",
 	}
 	prev, next, _ := getPrevNextArticles(slug)
 	if prev != nil {
