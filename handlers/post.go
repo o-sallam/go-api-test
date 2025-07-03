@@ -10,6 +10,9 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/tdewolff/minify/v2"
+	minhtml "github.com/tdewolff/minify/v2/html"
 )
 
 var (
@@ -212,7 +215,15 @@ func PostPartialHTMLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	authorAside = utils.ReplacePlaceholders(authorAside, authorFields)
 	mainInner = strings.Replace(mainInner, "{{AUTHOR_ASIDE}}", authorAside, 1)
+	// Minify the HTML before sending
+	m := minify.New()
+	m.AddFunc("text/html", minhtml.Minify)
+	minified, err := m.String("text/html", mainInner)
+	if err != nil {
+		w.Write([]byte(mainInner)) // fallback to unminified
+		return
+	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(mainInner))
+	w.Write([]byte(minified))
 }

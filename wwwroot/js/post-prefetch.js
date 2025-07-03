@@ -13,16 +13,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const cache = {};
     const main = document.querySelector('main');
     if (!main) return;
+    
     // Prefetch only once per link on mouseenter
     document.body.addEventListener('mouseenter', function (e) {
-        const link = e.target.closest('.article-nav-card a');
+        const link = e.target.closest('a[href^="/"]');
         if (link && link.getAttribute('href') && link.getAttribute('href') !== '#') {
             const slug = link.getAttribute('href').replace(/^\//, '');
             prefetchArticle(slug, cache);
         }
     }, true); // useCapture=true to catch events on bubbling
+    
+    // Handle clicks on article cards and prev/next buttons
     document.body.addEventListener('click', function (e) {
-        const link = e.target.closest('.article-nav-card a');
+        const link = e.target.closest('a[href^="/"]');
         if (link && link.getAttribute('href') && link.getAttribute('href') !== '#') {
             e.preventDefault();
             const slug = link.getAttribute('href').replace(/^\//, '');
@@ -42,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
+    
     // Handle browser back/forward
     window.addEventListener('popstate', function () {
         const slug = location.pathname.replace(/^\//, '');
