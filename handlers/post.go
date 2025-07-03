@@ -156,8 +156,6 @@ func PostPartialHTMLHandler(w http.ResponseWriter, r *http.Request) {
 		utils.Show404(w)
 		return
 	}
-	// جلب السابق والتالي
-	prev, next, _ := getPrevNextArticles(slug)
 	postBytes, err := os.ReadFile("views/post.html")
 	if err != nil {
 		http.Error(w, "Post template not found", 500)
@@ -170,7 +168,8 @@ func PostPartialHTMLHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid post template", 500)
 		return
 	}
-	mainContent := postHTML[mainStart : mainEnd+len("</main>")]
+	// extract only the content inside <main>...</main>
+	mainInner := postHTML[mainStart+len("<main>") : mainEnd]
 	mainFields := map[string]string{
 		"title":      article.Title,
 		"excerpt":    article.Excerpt,
@@ -187,6 +186,7 @@ func PostPartialHTMLHandler(w http.ResponseWriter, r *http.Request) {
 		"nextTitle":  "لا يوجد مقال لاحق",
 		"nextImage":  "/img/blog.webp",
 	}
+	prev, next, _ := getPrevNextArticles(slug)
 	if prev != nil {
 		mainFields["prevLink"] = "/" + prev.Slug
 		mainFields["prevTitle"] = prev.Title
@@ -197,7 +197,7 @@ func PostPartialHTMLHandler(w http.ResponseWriter, r *http.Request) {
 		mainFields["nextTitle"] = next.Title
 		mainFields["nextImage"] = next.CoverImage
 	}
-	mainContent = utils.ReplacePlaceholders(mainContent, mainFields)
+	mainInner = utils.ReplacePlaceholders(mainInner, mainFields)
 	authorAside := authorAsideTmpl
 	authorFields := map[string]string{
 		"authorImage":       "/img/auth.webp",
@@ -211,8 +211,8 @@ func PostPartialHTMLHandler(w http.ResponseWriter, r *http.Request) {
 		"articleStatsDate":  article.CreatedAt,
 	}
 	authorAside = utils.ReplacePlaceholders(authorAside, authorFields)
-	mainContent = strings.Replace(mainContent, "{{AUTHOR_ASIDE}}", authorAside, 1)
+	mainInner = strings.Replace(mainInner, "{{AUTHOR_ASIDE}}", authorAside, 1)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(mainContent))
+	w.Write([]byte(mainInner))
 }

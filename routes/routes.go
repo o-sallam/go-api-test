@@ -31,6 +31,10 @@ func RegisterRoutes(mux *http.ServeMux, staticRoot string, cssContent string) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		http.ServeFile(w, r, staticRoot+"/google4fe8d22092105d8e.html")
 	})
+	mux.Handle("/js/", http.StripPrefix("/js/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		http.FileServer(http.Dir(staticRoot+"/js")).ServeHTTP(w, r)
+	})))
 
 	// --- Page endpoints ---
 	mux.HandleFunc("/hello", handlers.HelloWorldHandler)
