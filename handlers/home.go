@@ -16,15 +16,15 @@ var (
 func SetPortfolioHTML(html string) {
 	portfolioHTML = html
 	// Load the card template at startup
-	cardBytes, err := os.ReadFile("wwwroot/components/card.html")
+	cardBytes, err := os.ReadFile("components/card.html")
 	if err != nil {
 		panic("Failed to load card template: " + err.Error())
 	}
 	cardTemplate = string(cardBytes)
 }
 
-// PortfolioHandler serves the HTML with dynamic cards
-func PortfolioHandler(w http.ResponseWriter, r *http.Request) {
+// HomeHandler serves the HTML with dynamic cards
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
