@@ -1,0 +1,5 @@
+[build]
+  command = "go build -o manage-system-api"
+
+[start]
+  command = "./manage-system-api"
