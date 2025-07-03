@@ -2,25 +2,19 @@ package handlers
 
 import (
 	"go-api-test/models"
+	"go-api-test/utils"
 	"net/http"
-	"os"
 	"strings"
 )
 
-var (
-	portfolioHTML string
-	cardTemplate  string
-)
+var portfolioHTML string
 
-// SetPortfolioHTML sets the HTML template in memory
+// SetPortfolioHTML sets the HTML template in memory and loads the card template via the utils
 func SetPortfolioHTML(html string) {
 	portfolioHTML = html
-	// Load the card template at startup
-	cardBytes, err := os.ReadFile("components/card.html")
-	if err != nil {
+	if err := utils.LoadCardTemplate("components/card.html"); err != nil {
 		panic("Failed to load card template: " + err.Error())
 	}
-	cardTemplate = string(cardBytes)
 }
 
 // HomeHandler serves the HTML with dynamic cards
@@ -54,23 +48,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	// Build cards HTML
-	var cardsBuilder strings.Builder
-	for _, a := range articles {
-		card := cardTemplate
-		card = strings.ReplaceAll(card, "{{ALT}}", a.ALT)
-		card = strings.ReplaceAll(card, "{{IMG}}", a.IMG)
-		card = strings.ReplaceAll(card, "{{CATEGORY}}", a.CATEGORY)
-		card = strings.ReplaceAll(card, "{{LINK}}", a.LINK)
-		card = strings.ReplaceAll(card, "{{TITLE}}", a.TITLE)
-		card = strings.ReplaceAll(card, "{{EXCERPT}}", a.EXCERPT)
-		card = strings.ReplaceAll(card, "{{VIEWS}}", a.VIEWS)
-		card = strings.ReplaceAll(card, "{{AUTHOR}}", a.AUTHOR)
-		card = strings.ReplaceAll(card, "{{DATE}}", a.DATE)
-		cardsBuilder.WriteString(card)
-	}
-
-	// Inject cards into the main HTML
-	out := strings.Replace(portfolioHTML, "{{CARDS}}", cardsBuilder.String(), 1)
+	cardsHTML := utils.BuildCardsHTML(articles)
+	out := strings.Replace(portfolioHTML, "{{CARDS}}", cardsHTML, 1)
 	w.Write([]byte(out))
 }

@@ -29,6 +29,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	mux.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir(staticRoot+"/img"))))
 	mux.HandleFunc("/", handlers.HomeHandler)
 	mux.HandleFunc("/hello", handlers.HelloWorldHandler)
 	mux.HandleFunc("/health", handlers.HealthHandler)
