@@ -7,24 +7,22 @@ import (
 	"os"
 
 	"go-api-test/handlers"
-	"go-api-test/utils"
 )
 
 func main() {
-	// Load and minify HTML at startup
+	// Load HTML at startup (no minify)
 	htmlBytes, err := os.ReadFile("wwwroot/index.html")
 	if err != nil {
 		log.Fatalf("Failed to load index.html: %v", err)
 	}
-	minified := utils.MinifyHTML(string(htmlBytes))
-	handlers.SetPortfolioHTML(minified)
+	handlers.SetPortfolioHTML(string(htmlBytes))
 
-	// Load and minify CSS at startup
+	// Load CSS at startup (no minify)
 	cssBytes, err := os.ReadFile("wwwroot/style.css")
 	if err != nil {
 		log.Fatalf("Failed to load style.css: %v", err)
 	}
-	minifiedCSS := utils.MinifyCSS(string(cssBytes))
+	cssContent := string(cssBytes)
 
 	mux := http.NewServeMux()
 
@@ -38,7 +36,7 @@ func main() {
 	mux.HandleFunc("/style.css", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		w.Write([]byte(minifiedCSS))
+		w.Write([]byte(cssContent))
 	})
 	mux.HandleFunc("/img/blog.webp", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
