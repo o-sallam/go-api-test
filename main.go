@@ -1,13 +1,39 @@
 package main
 
 import (
+	"compress/gzip"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"go-api-test/handlers"
 )
+
+// gzipHandler wraps an http.HandlerFunc to provide gzip compression if supported by the client
+func gzipHandler(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			h(w, r)
+			return
+		}
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		gw := gzipResponseWriter{Writer: gz, ResponseWriter: w}
+		h(gw, r)
+	}
+}
+
+type gzipResponseWriter struct {
+	http.ResponseWriter
+	Writer *gzip.Writer
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
 
 func main() {
 	// Load HTML at startup (no minify)
@@ -29,19 +55,19 @@ func main() {
 	mux.HandleFunc("/", handlers.PortfolioHandler)
 	mux.HandleFunc("/hello", handlers.HelloWorldHandler)
 	mux.HandleFunc("/health", handlers.HealthHandler)
-	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/favicon.ico", gzipHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		http.ServeFile(w, r, "wwwroot/favicon.ico")
-	})
-	mux.HandleFunc("/style.css", func(w http.ResponseWriter, r *http.Request) {
+	}))
+	mux.HandleFunc("/style.css", gzipHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		w.Write([]byte(cssContent))
-	})
-	mux.HandleFunc("/img/blog.webp", func(w http.ResponseWriter, r *http.Request) {
+	}))
+	mux.HandleFunc("/img/blog.webp", gzipHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		http.ServeFile(w, r, "wwwroot/img/blog.webp")
-	})
+	}))
 
 	port := os.Getenv("PORT")
 	if port == "" {
