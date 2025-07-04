@@ -9,6 +9,15 @@ function prefetchArticle(slug, cache) {
         });
 }
 
+function prefetchHomePage(cache) {
+    if (cache['home']) return; // already prefetched
+    fetch(`/post-partial-html`)
+        .then(res => res.ok ? res.text() : null)
+        .then(html => {
+            if (html) cache['home'] = html;
+        });
+}
+
 function showSpinner() {
     const spinner = document.getElementById('loading-spinner');
     if (spinner) spinner.style.display = 'flex';
@@ -35,8 +44,13 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.addEventListener('mouseenter', function (e) {
         const link = e.target.closest('a[href^="/"]');
         if (link && link.getAttribute('href') && link.getAttribute('href') !== '#') {
-            const slug = link.getAttribute('href').replace(/^\//, '');
-            prefetchArticle(slug, cache);
+            const href = link.getAttribute('href');
+            if (href === '/') {
+                prefetchHomePage(cache);
+            } else {
+                const slug = href.replace(/^\//, '');
+                prefetchArticle(slug, cache);
+            }
         }
     }, true); // useCapture=true to catch events on bubbling
     
@@ -45,27 +59,53 @@ document.addEventListener('DOMContentLoaded', function () {
         const link = e.target.closest('a[href^="/"]');
         if (link && link.getAttribute('href') && link.getAttribute('href') !== '#') {
             e.preventDefault();
-            const slug = link.getAttribute('href').replace(/^\//, '');
-            if (cache[slug]) {
-                main.innerHTML = cache[slug];
-                window.history.pushState({}, '', '/' + slug);
-                smoothScrollToTop();
+            const href = link.getAttribute('href');
+            if (href === '/') {
+                // Handle home page navigation
+                if (cache['home'] && !window.checkMainPageRefresh()) {
+                    main.innerHTML = cache['home'];
+                    window.history.pushState({}, '', '/');
+                    smoothScrollToTop();
+                } else {
+                    showSpinner();
+                    fetch(`/post-partial-html`)
+                        .then(res => res.ok ? res.text() : null)
+                        .then(html => {
+                            hideSpinner();
+                            if (html) {
+                                cache['home'] = html;
+                                main.innerHTML = html;
+                                window.history.pushState({}, '', '/');
+                                smoothScrollToTop();
+                            }
+                        })
+                        .catch(() => {
+                            hideSpinner();
+                        });
+                }
             } else {
-                showSpinner();
-                fetch(`/post-partial-html/${slug}`)
-                    .then(res => res.ok ? res.text() : null)
-                    .then(html => {
-                        hideSpinner();
-                        if (html) {
-                            cache[slug] = html;
-                            main.innerHTML = html;
-                            window.history.pushState({}, '', '/' + slug);
-                            smoothScrollToTop();
-                        }
-                    })
-                    .catch(() => {
-                        hideSpinner();
-                    });
+                const slug = href.replace(/^\//, '');
+                if (cache[slug]) {
+                    main.innerHTML = cache[slug];
+                    window.history.pushState({}, '', '/' + slug);
+                    smoothScrollToTop();
+                } else {
+                    showSpinner();
+                    fetch(`/post-partial-html/${slug}`)
+                        .then(res => res.ok ? res.text() : null)
+                        .then(html => {
+                            hideSpinner();
+                            if (html) {
+                                cache[slug] = html;
+                                main.innerHTML = html;
+                                window.history.pushState({}, '', '/' + slug);
+                                smoothScrollToTop();
+                            }
+                        })
+                        .catch(() => {
+                            hideSpinner();
+                        });
+                }
             }
         }
     });
@@ -73,7 +113,28 @@ document.addEventListener('DOMContentLoaded', function () {
     // Handle browser back/forward
     window.addEventListener('popstate', function () {
         const slug = location.pathname.replace(/^\//, '');
-        if (slug && cache[slug]) {
+        if (slug === '') {
+            // Home page
+            if (cache['home'] && !window.checkMainPageRefresh()) {
+                main.innerHTML = cache['home'];
+                smoothScrollToTop();
+            } else {
+                showSpinner();
+                fetch(`/post-partial-html`)
+                    .then(res => res.ok ? res.text() : null)
+                    .then(html => {
+                        hideSpinner();
+                        if (html) {
+                            cache['home'] = html;
+                            main.innerHTML = html;
+                            smoothScrollToTop();
+                        }
+                    })
+                    .catch(() => {
+                        hideSpinner();
+                    });
+            }
+        } else if (slug && cache[slug]) {
             main.innerHTML = cache[slug];
             smoothScrollToTop();
         } else if (slug) {

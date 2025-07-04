@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"go-api-test/models"
 	"go-api-test/services"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/tdewolff/minify/v2"
 	minhtml "github.com/tdewolff/minify/v2/html"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
@@ -300,4 +303,34 @@ func PostPartialHTMLHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(minified))
+}
+
+// GetLastPostID returns the ID of the most recent post
+func GetLastPostID() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	posts := services.GetPostsCollection()
+	opts := options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}})
+
+	var article models.Article
+	err := posts.FindOne(ctx, bson.M{}, opts).Decode(&article)
+	if err != nil {
+		return "", err
+	}
+
+	return article.ID, nil
+}
+
+// LastPostIDHandler returns the last post ID as JSON
+func LastPostIDHandler(w http.ResponseWriter, r *http.Request) {
+	lastID, err := GetLastPostID()
+	if err != nil {
+		http.Error(w, "Failed to get last post ID", 500)
+		return
+	}
+
+	response := map[string]string{"last_post_id": lastID}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

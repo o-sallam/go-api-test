@@ -51,5 +51,31 @@
   {{BODY}}
   {{FOOTER}}
   <script src="/js/post-prefetch.js"></script>
+  <script>
+    // Store last post ID in session storage and check for updates
+    (function() {
+      // Get last post ID from server and store it
+      fetch('/api/last-post-id')
+        .then(res => res.json())
+        .then(data => {
+          const currentLastID = sessionStorage.getItem('last_post_id');
+          if (currentLastID !== data.last_post_id) {
+            sessionStorage.setItem('last_post_id', data.last_post_id);
+            sessionStorage.setItem('needs_refresh', 'true');
+          }
+        })
+        .catch(err => console.log('Failed to get last post ID:', err));
+      
+      // Check if main page needs refresh when navigating back
+      window.checkMainPageRefresh = function() {
+        const needsRefresh = sessionStorage.getItem('needs_refresh');
+        if (needsRefresh === 'true') {
+          sessionStorage.removeItem('needs_refresh');
+          return true;
+        }
+        return false;
+      };
+    })();
+  </script>
 </body>
 </html> 
